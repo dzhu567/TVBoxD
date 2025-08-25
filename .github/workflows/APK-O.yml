@@ -19,10 +19,10 @@ jobs:
         run: git clone -b main --depth=1 https://github.com/takagen99/Box.git
       - name: Set up JDK
         uses: actions/setup-java@v4
-    with:
-      distribution: 'temurin'
-      java-version: '17'
-      cache: 'gradle'
+        with:
+         distribution: 'temurin'
+         java-version: '17'
+         cache: 'gradle'
       - name: DIY
         run: |
           chmod +x diy-O.sh
