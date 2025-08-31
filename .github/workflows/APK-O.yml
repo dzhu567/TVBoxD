@@ -1,4 +1,4 @@
-name: Optimized APK Build
+name:  APK-o Build
 
 on:
   repository_dispatch:
