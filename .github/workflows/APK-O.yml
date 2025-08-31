@@ -20,9 +20,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-         distribution: 'temurin'
-         java-version: '17'
-         cache: 'gradle'
+         fetch-depth: 0
       - name: DIY
         run: |
           chmod +x diy-O.sh
