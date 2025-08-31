@@ -31,8 +31,8 @@ jobs:
         
     - name: DIY
       run: |
-        chmod +x diy-O.sh
-        bash ${{ github.workspace }}/diy-O.sh
+        chmod +x diy-99.sh
+        bash ${{ github.workspace }}/diy-99.sh
         
     - name: Build With Gradle
       run: |
