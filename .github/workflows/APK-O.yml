@@ -31,6 +31,7 @@ jobs:
       - name: DIY
         run: |
           cd Box
+           
           if [ -f "diy-99.sh" ]; then
             chmod +x diy-99.sh
             bash diy-99.sh
@@ -39,8 +40,9 @@ jobs:
       - name: Build With Gradle
         run: |
           cd Box
+          echo "sdk.dir=\$ANDROID_HOME" > local.properties
           chmod +x gradlew
-          ./gradlew assemblerelease --build-cache --parallel --daemon --warning-mode all --scan
+          ./gradlew assemblerelease \--build-cache \ --parallel \-Dorg.gradle.internal.publish.checksums.insecure=true
         
       - name: Prepare App
         run: |
