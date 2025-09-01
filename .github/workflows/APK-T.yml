@@ -1,10 +1,6 @@
 name: APK-T Build
 
 on:
-#  push:
-#    branches:
-#      - main
-#  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -14,25 +10,27 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - name: Clone Project
         run: git clone -b main --depth=1 https://github.com/takagen99/Box.git
+
       - name: DIY
         run: |
+          cd Box
           chmod +x diy-T.sh
-          bash ${{ github.workspace }}/diy-T.sh
+          ./diy-T.sh
+
       - name: Build With Gradle
         run: |
-          num=$(find ${{ github.workspace }} -name gradlew  | awk -F"/" '{print NF-1}')
-          DIR=$(find ${{ github.workspace }} -name gradlew  | cut -d \/ -f$num)
-          cd $DIR
+          cd Box
           chmod +x gradlew
           ./gradlew assemblerelease --build-cache --parallel --daemon --warning-mode all
+
       - name: Prepare App
         run: |
           mkdir -p ${{ github.workspace }}/apk/
-          for file in `find ~ -name "*.apk" -print`; do
-            mv "$file" ${{ github.workspace }}/apk/
-          done
+          find ${{ github.workspace }}/Box -name "*.apk" -exec mv {} ${{ github.workspace }}/apk/ \;
+
       - name: Upload App To Artifact
         uses: actions/upload-artifact@v3
         with:
