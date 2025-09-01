@@ -42,7 +42,7 @@ jobs:
           cd Box
           echo "sdk.dir=\$ANDROID_HOME" > local.properties
           chmod +x gradlew
-          ./gradlew assemblerelease \--build-cache \ --parallel \-Dorg.gradle.internal.publish.checksums.insecure=true
+          ./gradlew assemblerelease \--build-cache \--parallel \-Dorg.gradle.internal.publish.checksums.insecure=true
         
       - name: Prepare App
         run: |
