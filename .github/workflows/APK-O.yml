@@ -7,50 +7,49 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    
     steps:
-    - name: Cache Gradle
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties') }}
+      - name: APK-O
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties') }}
       
-    - name: Clone Project
-      run: git clone -b main --depth=1 https://github.com/takagen99/Box.git
+      - name: Clone Project
+        run: git clone -b main --depth=1 https://github.com/takagen99/Box.git
       
-    - name: Set up JDK
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        cache: 'gradle'
-      env:
-        ORG_GRADLE_PROJECT_org.gradle.jvmargs: -Xmx4g -XX:MaxMetaspaceSize=1g
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+        env:
+          ORG_GRADLE_PROJECT_org.gradle.jvmargs: -Xmx4g -XX:MaxMetaspaceSize=1g
         
-    - name: DIY
-      run: |
+      - name: DIY
+        run: |
+          cd Box
+          if [ -f "diy-99.sh" ]; then
+            chmod +x diy-99.sh
+            bash diy-99.sh
+          fi
         
-        bash ${{ github.workspace }}/diy-99.sh
+      - name: Build With Gradle
+        run: |
+          cd Box
+          chmod +x gradlew
+          ./gradlew assemblerelease --build-cache --parallel --daemon --warning-mode all --scan
         
-    - name: Build With Gradle
-      run: |
-        num=$(find ${{ github.workspace }} -name gradlew | awk -F"/" '{print NF-1}')
-        DIR=$(find ${{ github.workspace }} -name gradlew | cut -d \/ -f$num)
-        cd $DIR
-        chmod +x gradlew
-        ./gradlew assemblerelease --build-cache --parallel --daemon --warning-mode all --scan
+      - name: Prepare App
+        run: |
+          mkdir -p ${{ github.workspace }}/apk/
+          find ${{ github.workspace }}/Box -name "*.apk" -exec mv {} ${{ github.workspace }}/apk/ \;
         
-    - name: Prepare App
-      run: |
-        mkdir -p ${{ github.workspace }}/apk/
-        for file in `find ~ -name "*.apk" -print`; do
-          mv "$file" ${{ github.workspace }}/apk/
-        done
-        
-    - name: Upload App To Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: com.github.tvbox.osc-${{ github.run_id }}
-        path: ${{ github.workspace }}/apk/*
+      - name: Upload App To Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: com.github.tvbox.osc-${{ github.run_id }}
+          path: ${{ github.workspace }}/apk/*
+
