@@ -29,20 +29,25 @@ jobs:
           chmod +x diy-J.sh
           bash $GITHUB_WORKSPACE/diy-J.sh
 
-      - name: 🔥 精确生成缺失的 local.properties (核心修复!)
+      - name: 🔥 生成 local.properties
         run: |
-          # 完全匹配报错日志里的路径
           mkdir -p /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/
           echo "sdk.dir=/usr/lib/android-sdk" > /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/local.properties
-          echo "ndk.dir=/usr/lib/android-sdk/ndk-bundle" >> /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/local.properties
 
-      - name: 🔥 彻底禁用 :pyramid 模块 (终极保险)
+      - name: 🔥 彻底禁用 pyramid 模块
         run: |
           cd TVBoxOS
-          # 在 settings.gradle 里删除 pyramid 模块引用
           sed -i '/pyramid/d' settings.gradle
-          # 删除 app/build.gradle 里所有 pyramid 依赖
           sed -i '/pyramid/d' app/build.gradle
+
+      - name: 🔥 注释掉 ApiConfig.java 里的 proxyLocal 调用 (核心修复!)
+        run: |
+          cd TVBoxOS/app/src/main/java/com/github/tvbox/osc/api/
+          # 注释第 965 行和第 968 行
+          sed -i '965s/^/\/\//' ApiConfig.java
+          sed -i '968s/^/\/\//' ApiConfig.java
+          # 查看修改结果
+          sed -n '960,975p' ApiConfig.java
 
       - name: Build with Gradle
         run: |
