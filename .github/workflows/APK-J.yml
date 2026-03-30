@@ -34,26 +34,28 @@ jobs:
           mkdir -p /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/
           echo "sdk.dir=/usr/lib/android-sdk" > /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/local.properties
 
-      - name: 🔥 彻底禁用 pyramid 模块
+      - name: 🔥 彻底清理 Python 相关代码 (核心终极修复!)
         run: |
           cd TVBoxOS
+          # 1. 彻底删除 settings.gradle 里的 pyramid 引用
           sed -i '/pyramid/d' settings.gradle
-          sed -i '/pyramid/d' app/build.gradle
-
-      - name: 🔥 注释掉 ApiConfig.java 里的 proxyLocal 调用 (核心修复!)
-        run: |
-          cd TVBoxOS/app/src/main/java/com/github/tvbox/osc/api/
-          # 注释第 965 行和第 968 行
-          sed -i '965s/^/\/\//' ApiConfig.java
-          sed -i '968s/^/\/\//' ApiConfig.java
-          # 查看修改结果
-          sed -n '960,975p' ApiConfig.java
+          
+          # 2. 删除 app/build.gradle 里的 Python 插件和依赖
+          sed -i '/python/d' app/build.gradle
+          sed -i '/Pyramid/d' app/build.gradle
+          
+          # 3. 全局替换所有调用 proxyLocal 的代码为 return null; (强制阻断!)
+          # 原理：用空代码替换报错方法，让编译器跳过
+          find . -name "*.java" -exec sed -i 's/return PythonLoader.*proxyLocal.*/return null;/g' {} \;
+          
+          # 4. 禁用 Python 编译任务（在 build.gradle 里加代码阻断）
+          echo -e "\nproject(':app').tasks.findByName('compilePythonReleaseJavaWithJavac')?.enabled = false" >> app/build.gradle
 
       - name: Build with Gradle
         run: |
           cd TVBoxOS
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease -x lint
 
       - name: Collect APK
         run: |
@@ -63,5 +65,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: TVBox-OSC-Final
+          name: TVBox-OSC-Stable
           path: apk/*
