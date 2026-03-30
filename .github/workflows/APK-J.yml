@@ -6,34 +6,29 @@ on:
 
 jobs:
   build:
+    # 🔴 关键修复：必须使用 ubuntu-24.04 才能完美支持新的 Node 版本
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.1.7
         with:
           fetch-depth: 0
 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
       - name: Clone Project
         run: git clone -b main --depth=1 https://github.com/q215613905/TVBoxOS.git
 
-      - name: DIY Script
+      - name: DIY
         run: |
           chmod +x diy-J.sh
           bash ${{ github.workspace }}/diy-J.sh
 
-      - name: Build With Gradle
+      - name: Build
         run: |
-          num=$(find ${{ github.workspace }} -name gradlew | awk -F"/" '{print NF-1}')
-          DIR=$(find ${{ github.workspace }} -name gradlew | cut -d \/ -f$num)
+          DIR=$(find . -name gradlew | head -n 1 | xargs dirname)
           cd "$DIR"
-          chmod +x gradlew
-          ./gradlew assembleRelease --build-cache --parallel --daemon --warning-mode all
-
-      - name: Prepare App
-        run: |
-          mkdir -p ${{ github.workspace }}/apk/
-          find ~ -name "*.apk" -exec mv {} ${{ github.workspace }}/apk/ \;
-
-      - uses: actions/upload-artifact@v4.6.1
-        with:
-          name: com.github.tvbox.osc
-          path: ${{ github.workspace }}/apk/*
+          ./gradlew assembleRelease
