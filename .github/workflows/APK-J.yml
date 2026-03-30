@@ -4,12 +4,15 @@ on:
   repository_dispatch:
   workflow_dispatch:
 
+# 消除 Node.js 20 弃用警告
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
-    # 🔴 关键修复：必须使用 ubuntu-24.04 才能完美支持新的 Node 版本
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -17,18 +20,30 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
+          distribution: temurin
 
-      - name: Clone Project
+      - name: Clone TVBoxOS
         run: git clone -b main --depth=1 https://github.com/q215613905/TVBoxOS.git
 
-      - name: DIY
+      - name: Run DIY Script
         run: |
           chmod +x diy-J.sh
-          bash ${{ github.workspace }}/diy-J.sh
+          bash $GITHUB_WORKSPACE/diy-J.sh
 
-      - name: Build
+      # 核心修复：先赋权再执行
+      - name: Build with Gradle
         run: |
-          DIR=$(find . -name gradlew | head -n 1 | xargs dirname)
-          cd "$DIR"
+          cd TVBoxOS
+          chmod +x gradlew
           ./gradlew assembleRelease
+
+      - name: Collect APK
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/apk
+          find $GITHUB_WORKSPACE/TVBoxOS -name "*.apk" -exec mv {} $GITHUB_WORKSPACE/apk/ \;
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: com.github.tvbox.osc
+          path: $GITHUB_WORKSPACE/apk/*
