@@ -29,19 +29,13 @@ jobs:
           chmod +x diy-J.sh
           bash $GITHUB_WORKSPACE/diy-J.sh
 
-      - name: 🔥 自动修复 build.gradle 语法错误 (关键!)
+      - name: 🔥 彻底修复 build.gradle 语法错误 (核心!)
         run: |
-          # 定位到 build.gradle 所在目录
           cd TVBoxOS/app
-          
-          # 1. 删除第 147 行那个报错的单引号/非法字符
-          sed -i '147d' build.gradle
-          
-          # 2. 确保 pyramid 依赖存在（如果没有也没关系，删了就行）
-          echo "implementation project(':pyramid')" >> build.gradle
-          
-          # 查看修复后的内容，确保没有报错
-          head -n 150 build.gradle
+          # 删除第147行和第165行这两个报错点
+          sed -i '147d;165d' build.gradle
+          # 查看修复后的文件，确认没有报错行
+          head -n 170 build.gradle
 
       - name: Build with Gradle
         run: |
@@ -57,5 +51,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: TVBox-OSC-Fixed
+          name: TVBox-OSC-Final
           path: apk/*
