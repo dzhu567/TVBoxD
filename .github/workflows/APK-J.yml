@@ -29,20 +29,20 @@ jobs:
           chmod +x diy-J.sh
           bash $GITHUB_WORKSPACE/diy-J.sh
 
-      - name: 🔥 生成缺失的 local.properties (核心修复!)
+      - name: 🔥 精确生成缺失的 local.properties (核心修复!)
+        run: |
+          # 完全匹配报错日志里的路径
+          mkdir -p /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/
+          echo "sdk.dir=/usr/lib/android-sdk" > /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/local.properties
+          echo "ndk.dir=/usr/lib/android-sdk/ndk-bundle" >> /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/local.properties
+
+      - name: 🔥 彻底禁用 :pyramid 模块 (终极保险)
         run: |
           cd TVBoxOS
-          # 自动生成 local.properties，指定 SDK 路径（CI 环境下 Android SDK 已由 setup-java 配置）
-          echo "sdk.dir=/usr/lib/android-sdk" > local.properties
-          echo "ndk.dir=/usr/lib/android-sdk/ndk-bundle" >> local.properties
-
-      - name: 🔥 清理 build.gradle 报错行
-        run: |
-          cd TVBoxOS/app
-          # 删除所有和 pyramid 相关的报错行
-          sed -i '/pyramid/d' build.gradle
-          # 查看修复后的文件
-          head -n 170 build.gradle
+          # 在 settings.gradle 里删除 pyramid 模块引用
+          sed -i '/pyramid/d' settings.gradle
+          # 删除 app/build.gradle 里所有 pyramid 依赖
+          sed -i '/pyramid/d' app/build.gradle
 
       - name: Build with Gradle
         run: |
