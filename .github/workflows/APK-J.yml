@@ -1,41 +1,44 @@
 name: APK-J Build
 
 on:
-#  push:
-#    branches:
-#      - main
-#  pull_request:
   repository_dispatch:
   workflow_dispatch:
+
+# 强制 Node.js 24，消除所有弃用警告
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Clone Project
         run: git clone -b main --depth=1 https://github.com/q215613905/TVBoxOS.git
-      - name: DIY
+
+      - name: DIY Script
         run: |
           chmod +x diy-J.sh
           bash ${{ github.workspace }}/diy-J.sh
+
       - name: Build With Gradle
         run: |
           num=$(find ${{ github.workspace }} -name gradlew  | awk -F"/" '{print NF-1}')
           DIR=$(find ${{ github.workspace }} -name gradlew  | cut -d \/ -f$num)
-          cd $DIR
+          cd "$DIR"
           chmod +x gradlew
-          ./gradlew assemblerelease --build-cache --parallel --daemon --warning-mode all
+          ./gradlew assembleRelease --build-cache --parallel --daemon --warning-mode all
+
       - name: Prepare App
         run: |
           mkdir -p ${{ github.workspace }}/apk/
-          for file in `find ~ -name "*.apk" -print`; do
-            mv "$file" ${{ github.workspace }}/apk/
-          done
+          find ~ -name "*.apk" -exec mv {} ${{ github.workspace }}/apk/ \;
+
       - name: Upload App To Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: com.github.tvbox.osc
           path: ${{ github.workspace }}/apk/*
