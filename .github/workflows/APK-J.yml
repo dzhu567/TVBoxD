@@ -4,15 +4,11 @@ on:
   repository_dispatch:
   workflow_dispatch:
 
-# 强制 Node.js 24，消除所有弃用警告
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.1.7
         with:
           fetch-depth: 0
 
@@ -26,8 +22,8 @@ jobs:
 
       - name: Build With Gradle
         run: |
-          num=$(find ${{ github.workspace }} -name gradlew  | awk -F"/" '{print NF-1}')
-          DIR=$(find ${{ github.workspace }} -name gradlew  | cut -d \/ -f$num)
+          num=$(find ${{ github.workspace }} -name gradlew | awk -F"/" '{print NF-1}')
+          DIR=$(find ${{ github.workspace }} -name gradlew | cut -d \/ -f$num)
           cd "$DIR"
           chmod +x gradlew
           ./gradlew assembleRelease --build-cache --parallel --daemon --warning-mode all
@@ -37,8 +33,7 @@ jobs:
           mkdir -p ${{ github.workspace }}/apk/
           find ~ -name "*.apk" -exec mv {} ${{ github.workspace }}/apk/ \;
 
-      - name: Upload App To Artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4.6.1
         with:
           name: com.github.tvbox.osc
           path: ${{ github.workspace }}/apk/*
