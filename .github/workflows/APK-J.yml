@@ -29,12 +29,19 @@ jobs:
           chmod +x diy-J.sh
           bash $GITHUB_WORKSPACE/diy-J.sh
 
-      - name: 🔥 彻底修复 build.gradle 语法错误 (核心!)
+      - name: 🔥 生成缺失的 local.properties (核心修复!)
+        run: |
+          cd TVBoxOS
+          # 自动生成 local.properties，指定 SDK 路径（CI 环境下 Android SDK 已由 setup-java 配置）
+          echo "sdk.dir=/usr/lib/android-sdk" > local.properties
+          echo "ndk.dir=/usr/lib/android-sdk/ndk-bundle" >> local.properties
+
+      - name: 🔥 清理 build.gradle 报错行
         run: |
           cd TVBoxOS/app
-          # 删除第147行和第165行这两个报错点
-          sed -i '147d;165d' build.gradle
-          # 查看修复后的文件，确认没有报错行
+          # 删除所有和 pyramid 相关的报错行
+          sed -i '/pyramid/d' build.gradle
+          # 查看修复后的文件
           head -n 170 build.gradle
 
       - name: Build with Gradle
