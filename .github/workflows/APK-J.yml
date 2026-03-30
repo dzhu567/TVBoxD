@@ -34,23 +34,25 @@ jobs:
           mkdir -p /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/
           echo "sdk.dir=/usr/lib/android-sdk" > /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/local.properties
 
-      - name: 🔥 温和清理 Python 相关代码 (不破坏 build.gradle 语法)
+      - name: 🔥 彻底修复 build.gradle 语法错误 (核心!)
+        run: |
+          cd TVBoxOS/app
+          # 1. 删除第 146 行那个报错的 pythonImplementation 行
+          sed -i '146d' build.gradle
+          # 2. 删除所有 pyramid 相关引用
+          sed -i '/pyramid/d' build.gradle
+          # 3. 查看修复结果
+          head -n 150 build.gradle
+
+      - name: 🔥 清理 Java 代码里的 proxyLocal 调用
         run: |
           cd TVBoxOS
-          # 1. 彻底删除 settings.gradle 里的 pyramid 引用
-          sed -i '/pyramid/d' settings.gradle
-          
-          # 2. 只删除 app/build.gradle 里的 Python 插件行，不追加任何代码
-          sed -i '/id.*python/d' app/build.gradle
-          
-          # 3. 全局替换所有 proxyLocal 调用为 return null;
           find . -name "*.java" -exec sed -i 's/return PythonLoader.*proxyLocal.*/return null;/g' {} \;
 
       - name: Build with Gradle (跳过 Python 任务)
         run: |
           cd TVBoxOS
           chmod +x gradlew
-          # 直接跳过 Python 编译任务，不从 build.gradle 里改
           ./gradlew assembleRelease -x compilePythonReleaseJavaWithJavac -x lint
 
       - name: Collect APK
@@ -61,5 +63,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: TVBox-OSC-Stable
+          name: TVBox-OSC-Final
           path: apk/*
