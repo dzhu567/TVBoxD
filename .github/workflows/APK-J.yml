@@ -4,7 +4,6 @@ on:
   repository_dispatch:
   workflow_dispatch:
 
-# 消除 Node.js 20 弃用警告
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -22,7 +21,7 @@ jobs:
           java-version: '17'
           distribution: temurin
 
-      - name: Clone TVBoxOS
+      - name: Clone Project
         run: git clone -b main --depth=1 https://github.com/q215613905/TVBoxOS.git
 
       - name: Run DIY Script
@@ -30,7 +29,20 @@ jobs:
           chmod +x diy-J.sh
           bash $GITHUB_WORKSPACE/diy-J.sh
 
-      # 核心修复：先赋权再执行
+      - name: 🔥 自动修复 build.gradle 语法错误 (关键!)
+        run: |
+          # 定位到 build.gradle 所在目录
+          cd TVBoxOS/app
+          
+          # 1. 删除第 147 行那个报错的单引号/非法字符
+          sed -i '147d' build.gradle
+          
+          # 2. 确保 pyramid 依赖存在（如果没有也没关系，删了就行）
+          echo "implementation project(':pyramid')" >> build.gradle
+          
+          # 查看修复后的内容，确保没有报错
+          head -n 150 build.gradle
+
       - name: Build with Gradle
         run: |
           cd TVBoxOS
@@ -40,10 +52,10 @@ jobs:
       - name: Collect APK
         run: |
           mkdir -p $GITHUB_WORKSPACE/apk
-          find $GITHUB_WORKSPACE/TVBoxOS -name "*.apk" -exec mv {} $GITHUB_WORKSPACE/apk/ \;
+          find . -name "*.apk" -exec mv {} $GITHUB_WORKSPACE/apk/ \;
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: com.github.tvbox.osc
-          path: $GITHUB_WORKSPACE/apk/*
+          name: TVBox-OSC-Fixed
+          path: apk/*
