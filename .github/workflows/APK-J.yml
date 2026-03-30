@@ -34,19 +34,22 @@ jobs:
           mkdir -p /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/
           echo "sdk.dir=/usr/lib/android-sdk" > /home/runner/work/TVBoxD/TVBoxD/TVBoxOS/local.properties
 
-      - name: 🔥 彻底修复 build.gradle 语法错误 (核心!)
+      - name: 🔥 修复 build.gradle 语法 + 补全注解依赖
         run: |
           cd TVBoxOS/app
-          # 1. 删除第 146 行那个报错的 pythonImplementation 行
+          # 1. 删除第 146 行报错的 pythonImplementation 行
           sed -i '146d' build.gradle
           # 2. 删除所有 pyramid 相关引用
           sed -i '/pyramid/d' build.gradle
-          # 3. 查看修复结果
-          head -n 150 build.gradle
+          # 3. 在 dependencies 块末尾添加 ContextSetter 依赖（兼容 AndroidX）
+          sed -i '/dependencies {/a \    implementation "androidx.core:core:1.12.0"\n    implementation "androidx.core:core-ktx:1.12.0"' build.gradle
 
-      - name: 🔥 清理 Java 代码里的 proxyLocal 调用
+      - name: 🔥 修复 Java 代码里的注解 + proxyLocal 调用
         run: |
           cd TVBoxOS
+          # 1. 注释掉 Global.java 里的 @ContextSetter 注解
+          find . -name "Global.java" -exec sed -i 's/@ContextSetter//g' {} \;
+          # 2. 替换所有 proxyLocal 调用为 return null;
           find . -name "*.java" -exec sed -i 's/return PythonLoader.*proxyLocal.*/return null;/g' {} \;
 
       - name: Build with Gradle (跳过 Python 任务)
